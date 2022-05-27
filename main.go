@@ -5,6 +5,7 @@ import (
 
 	"bwa-backer/auth"
 	"bwa-backer/handler"
+	"bwa-backer/middleware"
 	"bwa-backer/user"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,7 @@ func main() {
 	api.POST("/users", userHandler.RegisterUser)
 	api.POST("/sessions", userHandler.Login)
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
-	api.POST("/avatars", userHandler.UploadAvatar)
+	api.POST("/avatars", middleware.AuthMiddleware(authService, userService), userHandler.UploadAvatar)
 
 	router.Run()
 }

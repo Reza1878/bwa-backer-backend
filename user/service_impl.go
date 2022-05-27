@@ -88,3 +88,16 @@ func (s *ServiceImpl) SaveAvatar(ID int, fileLocation string) (User, error) {
 
 	return user, nil
 }
+
+func (s *ServiceImpl) GetUserByID(ID int) (User, error) {
+	user, err := s.repository.FindById(ID)
+	if err != nil {
+		return user, err
+	}
+
+	if user.Id == 0 {
+		return user, errors.New("user not found")
+	}
+
+	return user, nil
+}
