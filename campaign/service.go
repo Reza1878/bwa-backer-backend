@@ -1,5 +1,5 @@
 package campaign
 
 type Service interface {
-	GetCampaignList() ([]Campaign, error)
+	GetCampaigns(userId int) ([]Campaign, error)
 }

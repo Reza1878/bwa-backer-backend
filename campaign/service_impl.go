@@ -10,12 +10,15 @@ func NewService(repository Repository) *serviceImpl {
 	}
 }
 
-func (service *serviceImpl) GetCampaignList() ([]Campaign, error) {
-	campaign, err := service.repository.FindAll()
+func (service *serviceImpl) GetCampaigns(userId int) ([]Campaign, error) {
+	var campaigns []Campaign
+	var err error
 
-	if err != nil {
-		return campaign, err
+	if userId == 0 {
+		campaigns, err = service.repository.FindAll()
+	} else {
+		campaigns, err = service.repository.FindByUserID(userId)
 	}
 
-	return campaign, nil
+	return campaigns, err
 }
