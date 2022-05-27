@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"bwa-backer/auth"
+	"bwa-backer/campaign"
 	"bwa-backer/handler"
 	"bwa-backer/middleware"
 	"bwa-backer/user"
@@ -22,6 +24,12 @@ func main() {
 	}
 
 	userRepository := user.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
+
+	campaigns, _ := campaignRepository.FindByUserID(1)
+	for _, campaign := range campaigns {
+		fmt.Println(campaign.CampaignImages)
+	}
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
 

@@ -6,17 +6,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type ServiceImpl struct {
+type serviceImpl struct {
 	repository Repository
 }
 
-func NewService(repository Repository) *ServiceImpl {
-	return &ServiceImpl{
+func NewService(repository Repository) *serviceImpl {
+	return &serviceImpl{
 		repository: repository,
 	}
 }
 
-func (service *ServiceImpl) RegisterUser(input RegisterUserInput) (User, error) {
+func (service *serviceImpl) RegisterUser(input RegisterUserInput) (User, error) {
 	user := User{}
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.MinCost)
 	if err != nil {
@@ -37,7 +37,7 @@ func (service *ServiceImpl) RegisterUser(input RegisterUserInput) (User, error) 
 	return user, nil
 }
 
-func (s *ServiceImpl) Login(input LoginInput) (User, error) {
+func (s *serviceImpl) Login(input LoginInput) (User, error) {
 	email := input.Email
 	password := input.Password
 
@@ -58,7 +58,7 @@ func (s *ServiceImpl) Login(input LoginInput) (User, error) {
 	return user, nil
 }
 
-func (s *ServiceImpl) IsEmailAvailable(input CheckEmailInput) (bool, error) {
+func (s *serviceImpl) IsEmailAvailable(input CheckEmailInput) (bool, error) {
 	user, err := s.repository.FindByEmail(input.Email)
 
 	if user.Id != 0 {
@@ -72,7 +72,7 @@ func (s *ServiceImpl) IsEmailAvailable(input CheckEmailInput) (bool, error) {
 	return true, nil
 }
 
-func (s *ServiceImpl) SaveAvatar(ID int, fileLocation string) (User, error) {
+func (s *serviceImpl) SaveAvatar(ID int, fileLocation string) (User, error) {
 	user, err := s.repository.FindById(ID)
 	if err != nil {
 		return user, err
@@ -89,7 +89,7 @@ func (s *ServiceImpl) SaveAvatar(ID int, fileLocation string) (User, error) {
 	return user, nil
 }
 
-func (s *ServiceImpl) GetUserByID(ID int) (User, error) {
+func (s *serviceImpl) GetUserByID(ID int) (User, error) {
 	user, err := s.repository.FindById(ID)
 	if err != nil {
 		return user, err
