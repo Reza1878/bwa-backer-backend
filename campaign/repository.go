@@ -4,4 +4,6 @@ type Repository interface {
 	FindAll() ([]Campaign, error)
 	FindByUserID(UserID int) ([]Campaign, error)
 	FindByID(campaignID int) (Campaign, error)
+	FindCampaignBySlug(slug string) (Campaign, error)
+	Save(campaign Campaign) (Campaign, error)
 }

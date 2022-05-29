@@ -42,5 +42,27 @@ func (repository *repositoryImpl) FindByID(campaignID int) (Campaign, error) {
 		Find(&campaign).Error
 
 	return campaign, err
+}
 
+func (r *repositoryImpl) Save(campaign Campaign) (Campaign, error) {
+	err := r.db.Create(&campaign).Error
+
+	if err != nil {
+		return campaign, err
+	}
+
+	return campaign, nil
+}
+
+func (r *repositoryImpl) FindCampaignBySlug(slug string) (Campaign, error) {
+	var campaign Campaign
+
+	err := r.
+		db.
+		Where("slug = ?", slug).
+		Preload("User").
+		Preload("CampaignImages").
+		Find(&campaign).Error
+
+	return campaign, err
 }
