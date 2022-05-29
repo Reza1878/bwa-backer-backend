@@ -30,3 +30,17 @@ func (repository *repositoryImpl) FindByUserID(userID int) ([]Campaign, error) {
 	return campaigns, err
 
 }
+
+func (repository *repositoryImpl) FindByID(campaignID int) (Campaign, error) {
+	var campaign Campaign
+
+	err := repository.
+		db.
+		Where("id = ?", campaignID).
+		Preload("User").
+		Preload("CampaignImages").
+		Find(&campaign).Error
+
+	return campaign, err
+
+}

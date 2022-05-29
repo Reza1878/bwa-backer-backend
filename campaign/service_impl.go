@@ -22,3 +22,9 @@ func (service *serviceImpl) GetCampaigns(userId int) ([]Campaign, error) {
 
 	return campaigns, err
 }
+
+func (service *serviceImpl) GetCampaign(input GetCampaignDetailInput) (Campaign, error) {
+	campaign, err := service.repository.FindByID(input.ID)
+
+	return campaign, err
+}
