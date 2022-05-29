@@ -6,4 +6,5 @@ type Repository interface {
 	FindByID(campaignID int) (Campaign, error)
 	FindCampaignBySlug(slug string) (Campaign, error)
 	Save(campaign Campaign) (Campaign, error)
+	Update(campaign Campaign) (Campaign, error)
 }

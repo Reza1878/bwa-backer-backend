@@ -57,3 +57,25 @@ func (s *serviceImpl) CreateCampaign(request CreateCampaignRequest) (Campaign, e
 
 	return newCampaign, err
 }
+
+func (s *serviceImpl) UpdateCampaign(requestId GetCampaignDetailRequest, requestData CreateCampaignRequest) (Campaign, error) {
+	campaign, err := s.repository.FindByID(requestId.ID)
+	if err != nil {
+		return campaign, err
+	}
+	campaign.Name = requestData.Name
+	campaign.ShortDescription = requestData.ShortDescription
+	campaign.Description = requestData.Description
+	campaign.GoalAmount = requestData.GoalAmount
+	campaign.Perks = requestData.Perks
+
+	if campaign.UserId != requestData.User.Id {
+		return campaign, errors.New("you are not allowed to update this campaign")
+	}
+
+	campaign.UserId = requestData.User.Id
+
+	newCampaign, err := s.repository.Update(campaign)
+
+	return newCampaign, err
+}

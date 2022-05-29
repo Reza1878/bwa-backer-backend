@@ -66,3 +66,9 @@ func (r *repositoryImpl) FindCampaignBySlug(slug string) (Campaign, error) {
 
 	return campaign, err
 }
+
+func (r *repositoryImpl) Update(campaign Campaign) (Campaign, error) {
+	err := r.db.Save(&campaign).Error
+
+	return campaign, err
+}
