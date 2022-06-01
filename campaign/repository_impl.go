@@ -1,6 +1,8 @@
 package campaign
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type repositoryImpl struct {
 	db *gorm.DB
@@ -71,4 +73,23 @@ func (r *repositoryImpl) Update(campaign Campaign) (Campaign, error) {
 	err := r.db.Save(&campaign).Error
 
 	return campaign, err
+}
+
+func (r *repositoryImpl) SaveImage(campaignImage CampaignImage) (CampaignImage, error) {
+	err := r.db.Create(&campaignImage).Error
+
+	if err != nil {
+		return campaignImage, err
+	}
+
+	return campaignImage, nil
+}
+
+func (r *repositoryImpl) MarkAllImagesAsNonPrimary(campaignID int) (bool, error) {
+	err := r.db.Model(&CampaignImage{}).Where("campaign_id", campaignID).Update("is_primary", false).Error
+
+	if err != nil {
+		return false, err
+	}
+	return true, err
 }

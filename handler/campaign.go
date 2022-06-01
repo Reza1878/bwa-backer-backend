@@ -4,10 +4,14 @@ import (
 	"bwa-backer/campaign"
 	"bwa-backer/helper"
 	"bwa-backer/user"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type campaignHandler struct {
@@ -127,5 +131,59 @@ func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
 	}
 
 	response := helper.APIResponse("Success to update campaign", http.StatusOK, "success", campaign.FormatCampaignDetail(updatedCampaign))
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) UploadImage(c *gin.Context) {
+
+	var request campaign.CreateCampaignImageRequest
+	err := c.ShouldBind(&request)
+	if err != nil {
+		response := helper.APIResponse("Failed to upload campaign image", http.StatusBadRequest, "error", gin.H{
+			"errors": helper.FormatValidationError(err),
+		})
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	file, err := c.FormFile("image")
+	if err != nil {
+		response := helper.APIResponse("Failed to upload campaign image", http.StatusUnprocessableEntity, "error", map[string]any{
+			"is_uploaded": false,
+		})
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	extension := filepath.Ext(file.Filename)
+	path := fmt.Sprintf("images/campaign/%d-%s%s", request.CampaignID, uuid.New().String(), extension)
+
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		response := helper.APIResponse("Failed to upload campaign image", http.StatusBadRequest, "error", gin.H{
+			"is_uploaded": false,
+			"errors":      err.Error(),
+		})
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	request.User = currentUser
+
+	_, err = h.campaignService.CreateCampaignImage(request, path)
+
+	if err != nil {
+		os.Remove(path)
+		response := helper.APIResponse("Failed to upload campaign image", http.StatusBadRequest, "error", gin.H{
+			"is_uploaded": false,
+		})
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Success to upload campaign image", http.StatusOK, "success", gin.H{
+		"is_uploaded": true,
+	})
 	c.JSON(http.StatusOK, response)
 }

@@ -79,3 +79,31 @@ func (s *serviceImpl) UpdateCampaign(requestId GetCampaignDetailRequest, request
 
 	return newCampaign, err
 }
+
+func (s *serviceImpl) CreateCampaignImage(request CreateCampaignImageRequest, fileLocation string) (CampaignImage, error) {
+	campaign, err := s.repository.FindByID(request.CampaignID)
+
+	campaignImage := CampaignImage{}
+	campaignImage.CampaignId = request.CampaignID
+	campaignImage.FileName = fileLocation
+	campaignImage.IsPrimary = *request.IsPrimary
+
+	if err != nil || campaign.ID == 0 {
+		return campaignImage, errors.New("campaign not found")
+	}
+
+	if campaign.UserId != request.User.Id {
+		return campaignImage, errors.New("you are not allowed to create image on this campaign")
+	}
+
+	if *request.IsPrimary {
+		success, err := s.repository.MarkAllImagesAsNonPrimary(request.CampaignID)
+		if err != nil || !success {
+			return campaignImage, errors.New("internal server error")
+		}
+	}
+
+	campaignImage, err = s.repository.SaveImage(campaignImage)
+
+	return campaignImage, err
+}
