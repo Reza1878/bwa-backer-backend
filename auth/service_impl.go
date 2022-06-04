@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bwa-backer/helper"
 	"errors"
 
 	"github.com/golang-jwt/jwt"
@@ -13,7 +14,7 @@ func NewService() *JwtService {
 	return &JwtService{}
 }
 
-var SECRET_KEY = []byte("kucingsayabisabertelur")
+var SECRET_KEY = []byte(helper.GetDotEnvVariable("JWT_SECRET_KEY"))
 
 func (s *JwtService) GenerateToken(userID int) (string, error) {
 	claim := jwt.MapClaims{}

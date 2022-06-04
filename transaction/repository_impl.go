@@ -24,3 +24,9 @@ func (r *repositoryImpl) FindByUserId(userId int) ([]Transaction, error) {
 
 	return transactions, err
 }
+
+func (r *repositoryImpl) Save(transaction Transaction) (Transaction, error) {
+	err := r.db.Create(&transaction).Error
+
+	return transaction, err
+}

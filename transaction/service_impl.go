@@ -35,3 +35,15 @@ func (s *serviceImpl) GetTransactionsByUserId(userId int) ([]Transaction, error)
 
 	return transactions, err
 }
+
+func (s *serviceImpl) CreateTransaction(request CreateTransactionRequest) (Transaction, error) {
+	transaction := Transaction{}
+	transaction.Amount = request.Amount
+	transaction.CampaignId = request.CampaignId
+	transaction.UserId = request.User.Id
+	transaction.Status = "pending"
+
+	newTransaction, err := s.repository.Save(transaction)
+
+	return newTransaction, err
+}
