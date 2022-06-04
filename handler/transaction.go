@@ -47,3 +47,18 @@ func (h *transactionHandler) GetTransactions(c *gin.Context) {
 	response := helper.APIResponse("Success to get transactions", http.StatusOK, "success", transaction.FormatCampaignTransactions(transactions))
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *transactionHandler) GetUserTransaction(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(user.User)
+
+	transactions, err := h.transactionService.GetTransactionsByUserId(currentUser.Id)
+
+	if err != nil {
+		response := helper.APIResponse("Failed to get transactions", http.StatusInternalServerError, "error", gin.H{"errors": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	response := helper.APIResponse("User's transactions", http.StatusOK, "success", transaction.FormatUserTransactions(transactions))
+	c.JSON(http.StatusOK, response)
+}

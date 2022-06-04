@@ -29,3 +29,9 @@ func (s *serviceImpl) GetTransactionsByCampaignId(request GetCampaignTransaction
 
 	return transactions, err
 }
+
+func (s *serviceImpl) GetTransactionsByUserId(userId int) ([]Transaction, error) {
+	transactions, err := s.repository.FindByUserId(userId)
+
+	return transactions, err
+}

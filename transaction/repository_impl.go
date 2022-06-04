@@ -16,3 +16,11 @@ func (r *repositoryImpl) FindByCampaignId(campaignId int) ([]Transaction, error)
 
 	return transactions, err
 }
+
+func (r *repositoryImpl) FindByUserId(userId int) ([]Transaction, error) {
+	var transactions []Transaction
+
+	err := r.db.Where("user_id = ?", userId).Preload("Campaign.CampaignImages").Find(&transactions).Order("id desc").Error
+
+	return transactions, err
+}

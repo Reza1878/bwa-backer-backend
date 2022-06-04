@@ -1,6 +1,8 @@
 package campaign
 
-import "strings"
+import (
+	"strings"
+)
 
 type CampaignResponse struct {
 	ID               int    `json:"id"`
@@ -23,8 +25,10 @@ func FormatCampaign(campaign Campaign) CampaignResponse {
 	response.UserId = campaign.UserId
 	response.Slug = campaign.Slug
 
-	if len(campaign.CampaignImages) > 0 {
-		response.ImageUrl = campaign.CampaignImages[0].FileName
+	for _, image := range campaign.CampaignImages {
+		if image.IsPrimary {
+			response.ImageUrl = image.FileName
+		}
 	}
 
 	return response
