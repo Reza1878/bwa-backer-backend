@@ -2,18 +2,22 @@ package transaction
 
 import (
 	"bwa-backer/campaign"
+	"bwa-backer/payment"
+
 	"errors"
 )
 
 type serviceImpl struct {
 	repository         Repository
 	campaignRepository campaign.Repository
+	paymentService     payment.Service
 }
 
-func NewService(repository Repository, campaignRepository campaign.Repository) *serviceImpl {
+func NewService(repository Repository, campaignRepository campaign.Repository, paymentService payment.Service) *serviceImpl {
 	return &serviceImpl{
 		repository:         repository,
 		campaignRepository: campaignRepository,
+		paymentService:     paymentService,
 	}
 }
 
@@ -44,6 +48,25 @@ func (s *serviceImpl) CreateTransaction(request CreateTransactionRequest) (Trans
 	transaction.Status = "pending"
 
 	newTransaction, err := s.repository.Save(transaction)
+
+	if err != nil {
+		return newTransaction, err
+	}
+
+	paymentTransaction := payment.Transaction{
+		OrderId: newTransaction.Code,
+		Amount:  newTransaction.Amount,
+	}
+
+	paymentUrl, err := s.paymentService.GetPaymentURL(paymentTransaction, request.User)
+
+	if err != nil {
+		return newTransaction, err
+	}
+
+	newTransaction.PaymentUrl = paymentUrl
+
+	newTransaction, err = s.repository.Update(newTransaction)
 
 	return newTransaction, err
 }

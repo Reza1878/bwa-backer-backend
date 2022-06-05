@@ -70,3 +70,26 @@ func FormatUserTransactions(transactions []Transaction) []UserTransactionRespons
 
 	return responses
 }
+
+type TransactionResponse struct {
+	Id         int    `json:"id"`
+	CampaignId int    `json:"campaign_id"`
+	UserId     int    `json:"user_id"`
+	Amount     int    `json:"amount"`
+	Status     string `json:"status"`
+	Code       string `json:"code"`
+	PaymentUrl string `json:"payment_url"`
+}
+
+func FormatTransactionResponse(transaction Transaction) TransactionResponse {
+	response := TransactionResponse{}
+	response.Id = transaction.ID
+	response.Status = transaction.Status
+	response.Amount = transaction.Amount
+	response.CampaignId = transaction.CampaignId
+	response.Code = transaction.Code
+	response.PaymentUrl = transaction.PaymentUrl
+	response.UserId = transaction.UserId
+
+	return response
+}

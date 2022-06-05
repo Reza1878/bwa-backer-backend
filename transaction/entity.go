@@ -15,6 +15,13 @@ type Transaction struct {
 	Code       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+	PaymentUrl string
 	User       user.User
 	Campaign   campaign.Campaign
+}
+
+type TransactionNumberSequence struct {
+	ID   int
+	Year int
+	Seq  int
 }

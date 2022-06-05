@@ -8,6 +8,7 @@ import (
 	"bwa-backer/handler"
 	"bwa-backer/helper"
 	"bwa-backer/middleware"
+	"bwa-backer/payment"
 	"bwa-backer/transaction"
 	"bwa-backer/user"
 
@@ -31,7 +32,8 @@ func main() {
 	userService := user.NewService(userRepository)
 	campaignService := campaign.NewService(campaignRepository)
 	authService := auth.NewService()
-	transactionService := transaction.NewService(transactionRepository, campaignRepository)
+	paymentService := payment.NewService()
+	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)

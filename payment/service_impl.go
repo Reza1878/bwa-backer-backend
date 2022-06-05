@@ -1,7 +1,7 @@
 package payment
 
 import (
-	"bwa-backer/transaction"
+	"bwa-backer/helper"
 	"bwa-backer/user"
 
 	"github.com/midtrans/midtrans-go"
@@ -14,13 +14,13 @@ func NewService() *serviceImpl {
 	return &serviceImpl{}
 }
 
-func (s *serviceImpl) GetToken(transaction transaction.Transaction, user user.User) (string, error) {
-	midtrans.ServerKey = "YOUR-SERVER-KEY"
+func (s *serviceImpl) GetPaymentURL(transaction Transaction, user user.User) (string, error) {
+	midtrans.ServerKey = helper.GetDotEnvVariable("MIDTRANS_SERVER_KEY")
 	midtrans.Environment = midtrans.Sandbox
 
 	req := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
-			OrderID:  string(rune(transaction.ID)),
+			OrderID:  transaction.OrderId,
 			GrossAmt: int64(transaction.Amount),
 		},
 		CustomerDetail: &midtrans.CustomerDetails{
