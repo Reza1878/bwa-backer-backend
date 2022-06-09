@@ -30,6 +30,13 @@ func (r *repositoryImpl) FindByUserId(userId int) ([]Transaction, error) {
 	return transactions, err
 }
 
+func (r *repositoryImpl) FindByTransactionCode(code string) (Transaction, error) {
+	var transaction Transaction
+	err := r.db.Where("code = ?", code).Find(&transaction).Error
+
+	return transaction, err
+}
+
 func (r *repositoryImpl) Save(transaction Transaction) (Transaction, error) {
 	tx := r.db.Begin()
 	defer func() {

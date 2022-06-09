@@ -12,6 +12,7 @@ import (
 	"bwa-backer/transaction"
 	"bwa-backer/user"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -39,6 +40,7 @@ func main() {
 	campaignHandler := handler.NewCampaignHandler(campaignService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
 	router := gin.Default()
+	router.Use(cors.Default())
 	router.Static("/images", "./images")
 
 	api := router.Group("/api/v1")
