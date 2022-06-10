@@ -36,9 +36,3 @@ func (s *serviceImpl) GetPaymentURL(transaction Transaction, user user.User) (st
 
 	return snapTokenResp.RedirectURL, nil
 }
-
-func (s *serviceImpl) ProcessPayment(request TransactionNotificationRequest) error {
-	// transaction_id := request.OrderID
-
-	return nil
-}

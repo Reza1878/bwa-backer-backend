@@ -53,6 +53,7 @@ type CampaignDetailResponse struct {
 	CurrentAmount    int                   `json:"current_amount"`
 	UserId           int                   `json:"user_id"`
 	Description      string                `json:"description"`
+	BackerCount      int                   `json:"backer_count"`
 	Slug             string                `json:"slug"`
 	Perks            []string              `json:"perks"`
 	User             CampaignDetailUser    `json:"user"`
@@ -72,6 +73,7 @@ type CampaignDetailImage struct {
 func FormatCampaignDetail(campaign Campaign) CampaignDetailResponse {
 	response := CampaignDetailResponse{}
 	response.CurrentAmount = campaign.CurrentAmount
+	response.BackerCount = campaign.BackerCount
 	response.GoalAmount = campaign.GoalAmount
 	response.Description = campaign.Description
 	response.Name = campaign.Name

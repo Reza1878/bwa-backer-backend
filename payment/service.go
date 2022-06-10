@@ -6,5 +6,4 @@ import (
 
 type Service interface {
 	GetPaymentURL(transaction Transaction, user user.User) (string, error)
-	ProcessPayment(request TransactionNotificationRequest) error
 }

@@ -70,3 +70,39 @@ func (s *serviceImpl) CreateTransaction(request CreateTransactionRequest) (Trans
 
 	return newTransaction, err
 }
+
+func (s *serviceImpl) ProcessTransaction(request TransactionNotificationRequest) error {
+	transaction, err := s.repository.FindByTransactionCode(request.OrderID)
+	if err != nil {
+		return err
+	}
+
+	if request.PaymentType == "credit_card" && request.TransactionStatus == "capture" && request.FraudStatus == "accept" {
+		transaction.Status = "paid"
+	} else if request.TransactionStatus == "settlement" {
+		transaction.Status = "paid"
+	} else if request.TransactionStatus == "deny" || request.TransactionStatus == "expire" || request.TransactionStatus == "cancel" {
+		transaction.Status = "cancelled"
+	}
+
+	updatedTransaction, err := s.repository.Update(transaction)
+	if err != nil {
+		return err
+	}
+
+	campaign, err := s.campaignRepository.FindByID(updatedTransaction.CampaignId)
+	if err != nil {
+		return err
+	}
+
+	if updatedTransaction.Status == "paid" {
+		campaign.BackerCount = campaign.BackerCount + 1
+		campaign.CurrentAmount = campaign.CurrentAmount + updatedTransaction.Amount
+
+		_, err := s.campaignRepository.Update(campaign)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
