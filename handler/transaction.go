@@ -4,6 +4,7 @@ import (
 	"bwa-backer/helper"
 	"bwa-backer/transaction"
 	"bwa-backer/user"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -94,9 +95,10 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 
 func (h *transactionHandler) GetNotification(c *gin.Context) {
 	var request transaction.TransactionNotificationRequest
-	err := c.ShouldBindJSON(request)
+	err := c.ShouldBindJSON(&request)
 
 	if err != nil {
+		fmt.Println("Error Validation", err)
 		response := helper.APIResponse("Failed to process notification", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
@@ -105,6 +107,7 @@ func (h *transactionHandler) GetNotification(c *gin.Context) {
 	err = h.transactionService.ProcessTransaction(request)
 
 	if err != nil {
+		fmt.Println("Error process transaction", err)
 		response := helper.APIResponse("Failed to process notification", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
