@@ -8,6 +8,7 @@ type CampaignResponse struct {
 	ID               int    `json:"id"`
 	Name             string `json:"name"`
 	ShortDescription string `json:"short_description"`
+	Description      string `json:"description"`
 	ImageUrl         string `json:"image_url"`
 	GoalAmount       int    `json:"goal_amount"`
 	CurrentAmount    int    `json:"current_amount"`
@@ -19,6 +20,7 @@ func FormatCampaign(campaign Campaign) CampaignResponse {
 	response := CampaignResponse{}
 	response.Name = campaign.Name
 	response.ShortDescription = campaign.ShortDescription
+	response.Description = campaign.Description
 	response.ID = campaign.ID
 	response.CurrentAmount = campaign.CurrentAmount
 	response.GoalAmount = campaign.GoalAmount

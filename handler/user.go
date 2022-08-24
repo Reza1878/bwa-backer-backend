@@ -130,7 +130,6 @@ func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
-	userID := 1
 
 	currentUser := c.MustGet("currentUser").(user.User)
 
@@ -146,7 +145,7 @@ func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	_, err = handler.userService.SaveAvatar(userID, path)
+	_, err = handler.userService.SaveAvatar(currentUser.Id, path)
 
 	if err != nil {
 		response := helper.APIResponse("Failed to upload avatar", http.StatusBadRequest, "error", map[string]any{
