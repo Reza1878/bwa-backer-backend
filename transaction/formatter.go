@@ -10,6 +10,8 @@ type CampaignTransactionResponse struct {
 	Name      string    `json:"name"`
 	Amount    int       `json:"amount"`
 	CreatedAt time.Time `json:"created_at"`
+	Code      string    `json:"code"`
+	Status    string    `json:"status"`
 }
 
 func FormatCampaignTransaction(transaction Transaction) CampaignTransactionResponse {
@@ -18,6 +20,8 @@ func FormatCampaignTransaction(transaction Transaction) CampaignTransactionRespo
 	response.Name = transaction.User.Name
 	response.Amount = transaction.Amount
 	response.CreatedAt = transaction.CreatedAt
+	response.Code = transaction.Code
+	response.Status = transaction.Status
 
 	return response
 }

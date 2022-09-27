@@ -33,6 +33,10 @@ func (service *serviceImpl) GetCampaigns(userId int) ([]Campaign, error) {
 func (service *serviceImpl) GetCampaign(input GetCampaignDetailRequest) (Campaign, error) {
 	campaign, err := service.repository.FindByID(input.ID)
 
+	if campaign.ID == 0 {
+		return campaign, errors.New("data not found")
+	}
+
 	return campaign, err
 }
 

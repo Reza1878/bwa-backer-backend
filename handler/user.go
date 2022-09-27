@@ -5,7 +5,7 @@ import (
 	"bwa-backer/helper"
 	"bwa-backer/user"
 	"fmt"
-	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,28 +29,71 @@ func (handler *UserHandler) RegisterUser(c *gin.Context) {
 	if err != nil {
 		errors := helper.FormatValidationError(err)
 		errorMessage := gin.H{"errors": errors}
-		response := helper.APIResponse("Register account failed", http.StatusUnprocessableEntity, "failed", errorMessage)
-		c.JSON(http.StatusUnprocessableEntity, response)
+		helper.ResponseUnprocessableEntity(c, "Register account failed", errorMessage)
+		return
+	}
+
+	isEmailAvailable, _ := handler.userService.IsEmailAvailable(user.CheckEmailInput{Email: input.Email})
+
+	if !isEmailAvailable {
+		errorMessage := gin.H{"errors": "Register account failed"}
+		helper.ResponseBadRequest(c, "Email is already taken", errorMessage)
 		return
 	}
 
 	newUser, err := handler.userService.RegisterUser(input)
 	if err != nil {
-		response := helper.APIResponse("Register account failed", http.StatusBadRequest, "failed", nil)
-		c.JSON(http.StatusBadRequest, response)
+		helper.ResponseBadRequest(c, "Register account failed", nil)
 		return
 	}
 
 	token, err := handler.authService.GenerateToken(newUser.Id)
 	if err != nil {
-		response := helper.APIResponse("Register account failed", http.StatusBadRequest, "failed", nil)
-		c.JSON(http.StatusBadRequest, response)
+		helper.ResponseBadRequest(c, "Register account failed", nil)
 		return
 	}
 	formatter := user.FormatUser(newUser, token)
-	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", formatter)
+	helper.ResponseOK(c, "Account has been registered", formatter)
+}
 
-	c.JSON(http.StatusOK, response)
+func (h *UserHandler) Update(c *gin.Context) {
+	var input user.UpdateUserInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		helper.ResponseUnprocessableEntity(c, "Update failed", gin.H{"errors": errors})
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	input.User = currentUser
+
+	updatedUser, err := h.userService.UpdateUser(input)
+
+	if err != nil {
+		helper.ResponseInternalServerError(c, "Update failed", gin.H{"errors": err.Error()})
+		return
+	}
+	helper.ResponseOK(c, "Update success!", user.FormatUser(updatedUser, ""))
+}
+
+func (h *UserHandler) UpdatePassword(c *gin.Context) {
+	var input user.UpdateUserPasswordInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		helper.ResponseUnprocessableEntity(c, "Update password failed", gin.H{"errors": errors})
+		return
+	}
+	currentUser := c.MustGet("currentUser").(user.User)
+	input.User = currentUser
+
+	err = h.userService.UpdatePassword(input)
+	if err != nil {
+		helper.ResponseBadRequest(c, "Failed to update password", gin.H{"errors": err.Error()})
+		return
+	}
+	helper.ResponseOK(c, "Success update password", nil)
 }
 
 func (handler *UserHandler) Login(c *gin.Context) {
@@ -60,16 +103,14 @@ func (handler *UserHandler) Login(c *gin.Context) {
 	if err != nil {
 		errors := helper.FormatValidationError(err)
 		errorMessage := gin.H{"errors": errors}
-		response := helper.APIResponse("Login failed", http.StatusUnprocessableEntity, "failed", errorMessage)
-		c.JSON(http.StatusUnprocessableEntity, response)
+		helper.ResponseUnprocessableEntity(c, "Login failed", errorMessage)
 		return
 	}
 
 	loggedInUser, err := handler.userService.Login(input)
 	if err != nil {
 		errorMessage := gin.H{"errors": err.Error()}
-		response := helper.APIResponse("Login failed", http.StatusUnprocessableEntity, "failed", errorMessage)
-		c.JSON(http.StatusUnprocessableEntity, response)
+		helper.ResponseUnprocessableEntity(c, "Login failed", errorMessage)
 		return
 	}
 
@@ -77,14 +118,12 @@ func (handler *UserHandler) Login(c *gin.Context) {
 
 	if err != nil {
 		errorMessage := gin.H{"errors": err.Error()}
-		response := helper.APIResponse("Login failed", http.StatusUnprocessableEntity, "failed", errorMessage)
-		c.JSON(http.StatusUnprocessableEntity, response)
+		helper.ResponseUnprocessableEntity(c, "Login failed", errorMessage)
 		return
 	}
 
 	formatter := user.FormatUser(loggedInUser, token)
-	response := helper.APIResponse("Login success", http.StatusOK, "success", formatter)
-	c.JSON(http.StatusOK, response)
+	helper.ResponseOK(c, "Login success", formatter)
 }
 
 func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
@@ -94,18 +133,16 @@ func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
 	if err != nil {
 		errors := helper.FormatValidationError(err)
 		errorMessage := gin.H{"errors": errors}
-		response := helper.APIResponse("Invalid request", http.StatusUnprocessableEntity, "failed", errorMessage)
-		c.JSON(http.StatusUnprocessableEntity, response)
+		helper.ResponseUnprocessableEntity(c, "Invalid request", errorMessage)
 		return
 	}
 
 	isAvailable, err := handler.userService.IsEmailAvailable(user.CheckEmailInput{Email: input.Email})
 
 	if err != nil {
-		response := helper.APIResponse("Internal server error", http.StatusUnprocessableEntity, "failed", map[string]any{
+		helper.ResponseUnprocessableEntity(c, "Internal server error", map[string]any{
 			"errors": err.Error(),
 		})
-		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
 
@@ -115,19 +152,13 @@ func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
 		message = "Email not available"
 	}
 
-	response := helper.APIResponse(message, http.StatusOK, "success", map[string]any{
-		"is_available": isAvailable,
-	})
-	c.JSON(http.StatusOK, response)
+	helper.ResponseOK(c, message, gin.H{"is_available": isAvailable})
 }
 
 func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		response := helper.APIResponse("Failed to upload avatar", http.StatusBadRequest, "error", map[string]any{
-			"is_uploaded": false,
-		})
-		c.JSON(http.StatusBadRequest, response)
+		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"is_uploaded": false})
 		return
 	}
 
@@ -138,33 +169,25 @@ func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 	err = c.SaveUploadedFile(file, path)
 
 	if err != nil {
-		response := helper.APIResponse("Failed to upload avatar", http.StatusBadRequest, "error", map[string]any{
-			"is_uploaded": false,
-		})
-		c.JSON(http.StatusBadRequest, response)
+		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"is_uploaded": false})
 		return
 	}
 
 	_, err = handler.userService.SaveAvatar(currentUser.Id, path)
 
 	if err != nil {
-		response := helper.APIResponse("Failed to upload avatar", http.StatusBadRequest, "error", map[string]any{
-			"is_uploaded": false,
-		})
-		c.JSON(http.StatusBadRequest, response)
+		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"is_uploaded": false})
 		return
 	}
-
-	response := helper.APIResponse("Avatar uploaded successfully", http.StatusOK, "success", map[string]any{
-		"is_uploaded": true,
-	})
-	c.JSON(http.StatusOK, response)
+	if currentUser.Avatar != "" {
+		os.Remove(currentUser.Avatar)
+	}
+	helper.ResponseOK(c, "Avatar uploaded successfully", gin.H{"is_uploaded": true})
 }
 
 func (h *UserHandler) FetchUser(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(user.User)
 	formattedUser := user.FormatUser(currentUser, "")
 
-	response := helper.APIResponse("Successfully fetch user data", http.StatusOK, "success", formattedUser)
-	c.JSON(http.StatusOK, response)
+	helper.ResponseOK(c, "Successfully fetch user data", formattedUser)
 }

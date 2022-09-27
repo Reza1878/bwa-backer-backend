@@ -3,8 +3,10 @@ package helper
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 )
@@ -59,4 +61,29 @@ func GetConnectionString() string {
 	dbPort := GetDotEnvVariable("DB_PORT")
 
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+}
+
+func ResponseOK(c *gin.Context, message string, data interface{}) {
+	response := APIResponse(message, http.StatusOK, "success", data)
+	c.JSON(http.StatusOK, response)
+}
+
+func ResponseBadRequest(c *gin.Context, message string, data interface{}) {
+	response := APIResponse(message, http.StatusBadRequest, "error", data)
+	c.JSON(http.StatusBadRequest, response)
+}
+
+func ResponseUnprocessableEntity(c *gin.Context, message string, data interface{}) {
+	response := APIResponse(message, http.StatusUnprocessableEntity, "error", data)
+	c.JSON(http.StatusUnprocessableEntity, response)
+}
+
+func ResponseInternalServerError(c *gin.Context, message string, data interface{}) {
+	response := APIResponse(message, http.StatusInternalServerError, "error", data)
+	c.JSON(http.StatusInternalServerError, response)
+}
+
+func ResponseUnAuthorized(c *gin.Context, message string, data interface{}) {
+	response := APIResponse(message, http.StatusUnauthorized, "error", data)
+	c.JSON(http.StatusUnauthorized, response)
 }

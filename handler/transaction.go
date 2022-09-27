@@ -93,6 +93,10 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (h *transactionHandler) GetCampaignTransaction(c *gin.Context){
+	
+}
+
 func (h *transactionHandler) GetNotification(c *gin.Context) {
 	var request transaction.TransactionNotificationRequest
 	err := c.ShouldBindJSON(&request)

@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -37,6 +38,55 @@ func (service *serviceImpl) RegisterUser(input RegisterUserInput) (User, error) 
 	return user, nil
 }
 
+func (s *serviceImpl) UpdateUser(input UpdateUserInput) (User, error) {
+	user, err := s.repository.FindById(input.User.Id)
+	if err != nil {
+		return input.User, err
+	}
+
+	userByEmail, err := s.repository.FindByEmail(input.Email)
+	if err == nil {
+		if userByEmail.Id != input.User.Id {
+			return input.User, errors.New("email has been taken")
+		}
+	}
+
+	user.Name = input.Name
+	user.Occupation = input.Occupation
+	user.Email = input.Email
+
+	updatedUser, err := s.repository.Update(user)
+	if err != nil {
+		return input.User, err
+	}
+
+	return updatedUser, nil
+}
+
+func (s *serviceImpl) UpdatePassword(input UpdateUserPasswordInput) error {
+	fmt.Println(input)
+	err := bcrypt.CompareHashAndPassword([]byte(input.User.Password), []byte(input.OldPassword))
+
+	if err != nil {
+		return errors.New("old password is invalid")
+	}
+
+	if input.NewPassword != input.ConfirmationPassword {
+		return errors.New("new password didnt match")
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.MinCost)
+	if err != nil {
+		return err
+	}
+
+	currentUser, _ := s.repository.FindById(input.User.Id)
+	currentUser.Password = string(passwordHash)
+	_, err = s.repository.Update(currentUser)
+
+	return err
+}
+
 func (s *serviceImpl) Login(input LoginInput) (User, error) {
 	email := input.Email
 	password := input.Password
@@ -47,12 +97,12 @@ func (s *serviceImpl) Login(input LoginInput) (User, error) {
 	}
 
 	if user.Name == "" {
-		return user, errors.New("no user found on that email")
+		return user, errors.New("user not found")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return user, err
+		return user, errors.New("credential is invalid")
 	}
 
 	return user, nil
