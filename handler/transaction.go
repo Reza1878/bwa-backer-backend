@@ -6,6 +6,7 @@ import (
 	"bwa-backer/user"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -93,10 +94,6 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *transactionHandler) GetCampaignTransaction(c *gin.Context){
-	
-}
-
 func (h *transactionHandler) GetNotification(c *gin.Context) {
 	var request transaction.TransactionNotificationRequest
 	err := c.ShouldBindJSON(&request)
@@ -117,4 +114,35 @@ func (h *transactionHandler) GetNotification(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, request)
+}
+
+func (h *transactionHandler) GetTransactionSummary(c *gin.Context) {
+	dateStart := c.Query("date_start")
+	dateStartParams := ""
+	if dateStart != "" {
+		start, _ := time.Parse("2006-01-02", dateStart)
+		dateStartParams = start.String()
+	}
+
+	dateEnd := c.Query("date_end")
+	dateEndParams := ""
+	if dateEnd != "" {
+		end, _ := time.Parse("2006-01-02", dateEnd)
+		dateEndParams = end.String()
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+
+	params := transaction.GetTransactionSummaryRequest{
+		DateStart: dateStartParams,
+		DateEnd:   dateEndParams,
+		UserId:    currentUser.Id,
+	}
+
+	transactionSummary, err := h.transactionService.GetTransactionSummary(params)
+	if err != nil {
+		helper.ResponseInternalServerError(c, "Something went wrong", gin.H{"errors": err.Error()})
+		return
+	}
+	helper.ResponseOK(c, "Get transaction summary success", transactionSummary)
 }

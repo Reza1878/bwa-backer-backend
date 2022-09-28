@@ -34,6 +34,11 @@ func (s *serviceImpl) GetTransactionsByCampaignId(request GetCampaignTransaction
 	return transactions, err
 }
 
+func (s *serviceImpl) GetTransactionSummary(request GetTransactionSummaryRequest) ([]TransactionSummary, error) {
+	transactionSummary, err := s.repository.FindTransactionSummary(request.DateStart, request.DateEnd, request.UserId)
+	return transactionSummary, err
+}
+
 func (s *serviceImpl) GetTransactionsByUserId(userId int) ([]Transaction, error) {
 	transactions, err := s.repository.FindByUserId(userId)
 

@@ -20,6 +20,11 @@ type Transaction struct {
 	Campaign   campaign.Campaign
 }
 
+type TransactionSummary struct {
+	Period string `json:"period"`
+	Amount int    `json:"amount"`
+}
+
 type TransactionNumberSequence struct {
 	ID   int
 	Year int

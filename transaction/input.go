@@ -7,6 +7,12 @@ type GetCampaignTransactionRequest struct {
 	User user.User
 }
 
+type GetTransactionSummaryRequest struct {
+	DateStart string
+	DateEnd   string
+	UserId    int
+}
+
 type CreateTransactionRequest struct {
 	Amount     int `json:"amount" binding:"required"`
 	CampaignId int `json:"campaign_id" binding:"required"`

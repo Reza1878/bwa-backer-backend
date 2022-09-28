@@ -93,3 +93,22 @@ func (r *repositoryImpl) generateTransactionCode(tx *gorm.DB) (string, error) {
 	return code, nil
 
 }
+
+func (r *repositoryImpl) FindTransactionSummary(dateStart string, dateEnd string, userId int) ([]TransactionSummary, error) {
+	var transactionSummary []TransactionSummary
+	query := r.db.Table("transactions").Select("DATE_FORMAT(created_at, '%b %Y') as period", "SUM(amount) as amount", "status", "user_id").Where("user_id = ?", userId).Where("status", "success")
+
+	if dateStart != "" {
+		fmt.Println(dateStart)
+		query.Where("created_at >= ?", dateStart)
+	}
+	if dateEnd != "" {
+		query.Where("created_at <= ?", dateEnd)
+	}
+	query.Group("period, status, user_id")
+	err := query.Find(&transactionSummary).Error
+	if err != nil {
+		return transactionSummary, err
+	}
+	return transactionSummary, nil
+}
