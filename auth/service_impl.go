@@ -43,6 +43,17 @@ func (s *serviceImpl) GenerateRefreshToken(userID int) (string, error) {
 	return signedToken, nil
 }
 
+func (s *serviceImpl) GetRefreshToken(token string) (Authentication, error) {
+	authentication, err := s.repository.FindByToken(token)
+	if err != nil {
+		return authentication, err
+	}
+	if authentication.ID == 0 {
+		return authentication, errors.New("refresh token not found")
+	}
+	return authentication, err
+}
+
 func (s *serviceImpl) DeleteRefreshToken(token string) error {
 	authentication, err := s.repository.FindByToken(token)
 	if err != nil {
@@ -81,6 +92,23 @@ func (c *serviceImpl) ValidateToken(encodedToken string) (*jwt.Token, error) {
 		}
 
 		return []byte(SECRET_KEY), nil
+	})
+
+	if err != nil {
+		return token, err
+	}
+
+	return token, nil
+}
+
+func (c *serviceImpl) ValidateRefreshToken(encodedToken string) (*jwt.Token, error) {
+	token, err := jwt.Parse(encodedToken, func(t *jwt.Token) (interface{}, error) {
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, errors.New("invalid token")
+		}
+
+		return []byte(SECRET_REFRESH_TOKEN_KEY), nil
 	})
 
 	if err != nil {

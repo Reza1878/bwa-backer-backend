@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 type UserHandler struct {
@@ -147,6 +148,49 @@ func (handler *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	helper.ResponseOK(c, "Login success", gin.H{"access_token": token, "refresh_token": refreshToken})
+}
+
+func (h *UserHandler) RefreshToken(c *gin.Context) {
+	var input user.LogoutInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		helper.ResponseBadRequest(c, "Operation failed", gin.H{"errors": errors})
+		return
+	}
+
+	_, err = h.authService.GetRefreshToken(input.RefreshToken)
+
+	if err != nil {
+		helper.ResponseBadRequest(c, "Error", gin.H{"errors": err.Error()})
+		return
+	}
+
+	token, err := h.authService.ValidateRefreshToken(input.RefreshToken)
+
+	if err != nil {
+		helper.ResponseUnAuthorized(c, "Refresh token is not valid", nil)
+		c.Abort()
+		return
+	}
+	claim, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		helper.ResponseUnAuthorized(c, "Refresh token is not valid", nil)
+		c.Abort()
+		return
+	}
+
+	data := claim["data"].(map[string]interface{})
+
+	userID := int(data["user_id"].(float64))
+	refreshToken, err := h.authService.GenerateToken(userID)
+
+	if err != nil {
+		helper.ResponseBadRequest(c, "Something went wrong", gin.H{"errors": err.Error()})
+		return
+	}
+
+	helper.ResponseOK(c, "Success", gin.H{"access_token": refreshToken})
 }
 
 func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {

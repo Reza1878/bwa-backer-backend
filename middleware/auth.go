@@ -39,7 +39,9 @@ func AuthMiddleware(authService auth.Service, userService user.Service) gin.Hand
 			return
 		}
 
-		userID := int(claim["user_id"].(float64))
+		data := claim["data"].(map[string]interface{})
+
+		userID := int(data["user_id"].(float64))
 
 		user, err := userService.GetUserByID(userID)
 
