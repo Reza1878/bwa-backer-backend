@@ -28,12 +28,14 @@ func AuthMiddleware(authService auth.Service, userService user.Service) gin.Hand
 
 		if err != nil {
 			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
+			c.Abort()
 			return
 		}
 
 		claim, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
 			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
+			c.Abort()
 			return
 		}
 
@@ -43,9 +45,11 @@ func AuthMiddleware(authService auth.Service, userService user.Service) gin.Hand
 
 		if err != nil || user.Id == 0 {
 			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
+			c.Abort()
 			return
 		}
 
 		c.Set("currentUser", user)
+		c.Next()
 	}
 }

@@ -53,7 +53,7 @@ func main() {
 	api.PUT("/users", middleware.AuthMiddleware(authService, userService), userHandler.Update)
 	api.PUT("/users/password", middleware.AuthMiddleware(authService, userService), userHandler.UpdatePassword)
 	api.POST("/sessions", userHandler.Login)
-	api.DELETE("/sessions", userHandler.Logout)
+	api.DELETE("/sessions", middleware.AuthMiddleware(authService, userService), userHandler.Logout)
 
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
 	api.POST("/avatars", middleware.AuthMiddleware(authService, userService), userHandler.UploadAvatar)
