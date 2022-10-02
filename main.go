@@ -29,10 +29,11 @@ func main() {
 	userRepository := user.NewRepository(db)
 	campaignRepository := campaign.NewRepository(db)
 	transactionRepository := transaction.NewRepository(db)
+	authenticationRepository := auth.NewRepository(db)
 
 	userService := user.NewService(userRepository)
 	campaignService := campaign.NewService(campaignRepository)
-	authService := auth.NewService()
+	authService := auth.NewService(authenticationRepository)
 	paymentService := payment.NewService()
 	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
 
@@ -52,6 +53,8 @@ func main() {
 	api.PUT("/users", middleware.AuthMiddleware(authService, userService), userHandler.Update)
 	api.PUT("/users/password", middleware.AuthMiddleware(authService, userService), userHandler.UpdatePassword)
 	api.POST("/sessions", userHandler.Login)
+	api.DELETE("/sessions", userHandler.Logout)
+
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
 	api.POST("/avatars", middleware.AuthMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/users/fetch", middleware.AuthMiddleware(authService, userService), userHandler.FetchUser)

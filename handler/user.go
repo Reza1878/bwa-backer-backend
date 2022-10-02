@@ -96,6 +96,24 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	helper.ResponseOK(c, "Success update password", nil)
 }
 
+func (h *UserHandler) Logout(c *gin.Context) {
+	var input user.LogoutInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		helper.ResponseBadRequest(c, "Logout failed", gin.H{"errors": errors})
+		return
+	}
+
+	err = h.authService.DeleteRefreshToken(input.RefreshToken)
+	if err != nil {
+		helper.ResponseBadRequest(c, "Logout failed", gin.H{"errors": err.Error()})
+		return
+	}
+
+	helper.ResponseOK(c, "Logout succecss", nil)
+}
+
 func (handler *UserHandler) Login(c *gin.Context) {
 	var input user.LoginInput
 	err := c.ShouldBindJSON(&input)
@@ -122,8 +140,13 @@ func (handler *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	formatter := user.FormatUser(loggedInUser, token)
-	helper.ResponseOK(c, "Login success", formatter)
+	refreshToken, err := handler.authService.GenerateRefreshToken(loggedInUser.Id)
+
+	if err != nil {
+		helper.ResponseInternalServerError(c, "Failed to generate token", nil)
+		return
+	}
+	helper.ResponseOK(c, "Login success", gin.H{"access_token": token, "refresh_token": refreshToken})
 }
 
 func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {

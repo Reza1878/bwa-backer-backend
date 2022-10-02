@@ -4,7 +4,6 @@ import (
 	"bwa-backer/auth"
 	"bwa-backer/helper"
 	"bwa-backer/user"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,8 +14,7 @@ func AuthMiddleware(authService auth.Service, userService user.Service) gin.Hand
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if !strings.Contains(authHeader, "Bearer") {
-			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
 			return
 		}
 
@@ -29,15 +27,13 @@ func AuthMiddleware(authService auth.Service, userService user.Service) gin.Hand
 		token, err := authService.ValidateToken(tokenString)
 
 		if err != nil {
-			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
 			return
 		}
 
 		claim, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
-			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
 			return
 		}
 
@@ -46,8 +42,7 @@ func AuthMiddleware(authService auth.Service, userService user.Service) gin.Hand
 		user, err := userService.GetUserByID(userID)
 
 		if err != nil || user.Id == 0 {
-			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			helper.ResponseUnAuthorized(c, "Unauthorized", nil)
 			return
 		}
 

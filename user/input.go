@@ -26,6 +26,10 @@ type LoginInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type LogoutInput struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 type CheckEmailInput struct {
 	Email string `json:"email" binding:"required,email"`
 }
