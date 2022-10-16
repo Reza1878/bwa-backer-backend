@@ -114,18 +114,24 @@ func (h *campaignHandler) UploadImage(c *gin.Context) {
 	var request campaign.CreateCampaignImageRequest
 	err := c.ShouldBind(&request)
 	if err != nil {
+		if err.Error() == "http: request body too large" {
+			helper.ResponseBadRequest(c, "Failed to upload campaign image", gin.H{"errors": "File is too large"})
+			return
+		}
 		helper.ResponseBadRequest(c, "Failed to upload campaign image", gin.H{"errors": helper.FormatValidationError(err)})
 		return
 	}
 
 	file, err := c.FormFile("image")
+
 	if err != nil {
 		helper.ResponseUnprocessableEntity(c, "Failed to upload campaign image", gin.H{"is_uploaded": false})
 		return
 	}
 
 	extension := filepath.Ext(file.Filename)
-	path := fmt.Sprintf("images/campaign/%d-%s%s", request.CampaignID, uuid.New().String(), extension)
+	basePath := fmt.Sprintf("images/campaign/%d-%s%s", request.CampaignID, uuid.New().String(), extension)
+	path := helper.JoinProjectPath(basePath)
 
 	err = c.SaveUploadedFile(file, path)
 	if err != nil {
@@ -142,10 +148,10 @@ func (h *campaignHandler) UploadImage(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(user.User)
 	request.User = currentUser
 
-	_, err = h.campaignService.CreateCampaignImage(request, path)
+	_, err = h.campaignService.CreateCampaignImage(request, basePath)
 
 	if err != nil {
-		os.Remove(path)
+		os.Remove(helper.JoinProjectPath(basePath))
 		helper.ResponseBadRequest(c, "Failed to upload campaign image", gin.H{"is_uploaded": false})
 		return
 	}

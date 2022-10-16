@@ -2,9 +2,9 @@ package helper
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -18,8 +18,8 @@ type Meta struct {
 }
 
 type Response struct {
-	Meta Meta `json:"meta"`
-	Data any  `json:"data"`
+	Meta Meta        `json:"meta"`
+	Data interface{} `json:"data"`
 }
 
 func APIResponse(message string, code int, status string, data interface{}) Response {
@@ -49,11 +49,7 @@ func FormatValidationError(err error) []string {
 }
 
 func GetDotEnvVariable(key string) string {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load(".env")
 
 	return os.Getenv(key)
 }
@@ -91,4 +87,16 @@ func ResponseInternalServerError(c *gin.Context, message string, data interface{
 func ResponseUnAuthorized(c *gin.Context, message string, data interface{}) {
 	response := APIResponse(message, http.StatusUnauthorized, "error", data)
 	c.JSON(http.StatusUnauthorized, response)
+}
+
+func JoinProjectPath(dir string) string {
+	currentDir, _ := os.Getwd()
+
+	projectPath := GetDotEnvVariable("PROJECT_PATH")
+
+	if projectPath != "" {
+		return filepath.Join(projectPath, "/", dir)
+	}
+
+	return filepath.Join(currentDir, "/", dir)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"bwa-backer/auth"
@@ -19,6 +20,7 @@ import (
 )
 
 func main() {
+	fmt.Println(helper.JoinProjectPath("images"))
 	dsn := helper.GetConnectionString()
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
@@ -45,7 +47,7 @@ func main() {
 	corsConfig.AllowAllOrigins = true
 	corsConfig.AllowHeaders = []string{"Authorization", "Content-Type"}
 	router.Use(cors.New(corsConfig))
-	router.Static("/images", "./images")
+	router.Static("/images", helper.JoinProjectPath("images"))
 
 	api := router.Group("/api/v1")
 
@@ -57,19 +59,20 @@ func main() {
 	api.PUT("/sessions", userHandler.RefreshToken)
 
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
-	api.POST("/avatars", middleware.AuthMiddleware(authService, userService), userHandler.UploadAvatar)
+	api.POST("/avatars", middleware.AuthMiddleware(authService, userService), middleware.LimitUploadFileSize(512*1000), userHandler.UploadAvatar)
 	api.GET("/users/fetch", middleware.AuthMiddleware(authService, userService), userHandler.FetchUser)
 
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
 	api.GET("/campaigns/:id", campaignHandler.GetCampaign)
 	api.POST("/campaigns", middleware.AuthMiddleware(authService, userService), campaignHandler.CreateCampaign)
 	api.PUT("/campaigns/:id", middleware.AuthMiddleware(authService, userService), campaignHandler.UpdateCampaign)
-	api.POST("/campaigns-images", middleware.AuthMiddleware(authService, userService), campaignHandler.UploadImage)
+	api.POST("/campaigns-images", middleware.AuthMiddleware(authService, userService), middleware.LimitUploadFileSize(512*1000), campaignHandler.UploadImage)
 
 	api.GET("/campaigns/:id/transactions", middleware.AuthMiddleware(authService, userService), transactionHandler.GetTransactions)
 	api.GET("/transactions", middleware.AuthMiddleware(authService, userService), transactionHandler.GetUserTransaction)
 	api.POST("/transactions", middleware.AuthMiddleware(authService, userService), transactionHandler.CreateTransaction)
 	api.POST("/transactions/notification", transactionHandler.GetNotification)
 	api.GET("/transactions/summary", middleware.AuthMiddleware(authService, userService), transactionHandler.GetTransactionSummary)
+
 	router.Run()
 }

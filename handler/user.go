@@ -6,9 +6,11 @@ import (
 	"bwa-backer/user"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -53,8 +55,18 @@ func (handler *UserHandler) RegisterUser(c *gin.Context) {
 		helper.ResponseBadRequest(c, "Register account failed", nil)
 		return
 	}
-	formatter := user.FormatUser(newUser, token)
-	helper.ResponseOK(c, "Account has been registered", formatter)
+
+	refreshToken, err := handler.authService.GenerateRefreshToken(newUser.Id)
+	if err != nil {
+		helper.ResponseBadRequest(c, "Register account failed", nil)
+		return
+	}
+
+	helper.ResponseOK(c, "Register success", gin.H{
+		"token":         token,
+		"refresh_token": refreshToken,
+	})
+
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
@@ -207,7 +219,7 @@ func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
 	isAvailable, err := handler.userService.IsEmailAvailable(user.CheckEmailInput{Email: input.Email})
 
 	if err != nil {
-		helper.ResponseUnprocessableEntity(c, "Internal server error", map[string]any{
+		helper.ResponseUnprocessableEntity(c, "Internal server error", gin.H{
 			"errors": err.Error(),
 		})
 		return
@@ -225,30 +237,53 @@ func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
 func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 	file, err := c.FormFile("avatar")
 	if err != nil {
+		if err.Error() == "http: request body too large" {
+			helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"errors": "File is too large"})
+			return
+		}
 		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"is_uploaded": false})
 		return
 	}
 
-	currentUser := c.MustGet("currentUser").(user.User)
-
-	path := fmt.Sprintf("images/avatar/%d-%s", currentUser.Id, file.Filename)
-
-	err = c.SaveUploadedFile(file, path)
+	avatar, _, err := c.Request.FormFile("avatar")
 
 	if err != nil {
 		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"is_uploaded": false})
 		return
 	}
 
-	_, err = handler.userService.SaveAvatar(currentUser.Id, path)
+	if !helper.IsImage(avatar) {
+		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{
+			"is_uploaded": false,
+			"errors":      "Avatar must be an image",
+		})
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+
+	extension := filepath.Ext(file.Filename)
+	basePath := fmt.Sprintf("images/avatar/%s-%s%s", "avatar", uuid.New().String(), extension)
+	path := helper.JoinProjectPath(basePath)
+	err = c.SaveUploadedFile(file, path)
+
+	if err != nil {
+		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{
+			"is_uploaded": false,
+		})
+		return
+	}
+
+	_, err = handler.userService.SaveAvatar(currentUser.Id, basePath)
 
 	if err != nil {
 		helper.ResponseBadRequest(c, "Failed to upload avatar", gin.H{"is_uploaded": false})
 		return
 	}
 	if currentUser.Avatar != "" {
-		os.Remove(currentUser.Avatar)
+		os.Remove(helper.JoinProjectPath(currentUser.Avatar))
 	}
+
 	helper.ResponseOK(c, "Avatar uploaded successfully", gin.H{"is_uploaded": true})
 }
 
