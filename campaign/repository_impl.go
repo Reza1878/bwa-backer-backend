@@ -22,7 +22,7 @@ func (repository *repositoryImpl) FindAll(request GetCampaignsRequest) ([]Campai
 	}
 
 	if request.Name != "" {
-		query.Where("name ILIKE ?", "%"+request.Name+"%")
+		query.Where("name LIKE ?", "%"+request.Name+"%")
 	}
 	query.Order("id")
 
