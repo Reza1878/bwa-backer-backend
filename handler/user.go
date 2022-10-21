@@ -174,6 +174,10 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 	_, err = h.authService.GetRefreshToken(input.RefreshToken)
 
 	if err != nil {
+		if err.Error() == "refresh token not found" {
+			helper.ResponseNotFound(c, "Refresh token not found", gin.H{"errors": err.Error()})
+			return
+		}
 		helper.ResponseBadRequest(c, "Error", gin.H{"errors": err.Error()})
 		return
 	}

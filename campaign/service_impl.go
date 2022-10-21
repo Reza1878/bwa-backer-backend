@@ -17,14 +17,14 @@ func NewService(repository Repository) *serviceImpl {
 	}
 }
 
-func (service *serviceImpl) GetCampaigns(userId int) ([]Campaign, error) {
+func (service *serviceImpl) GetCampaigns(input GetCampaignsRequest) ([]Campaign, error) {
 	var campaigns []Campaign
 	var err error
 
-	if userId == 0 {
-		campaigns, err = service.repository.FindAll()
+	if input.UserId == 0 {
+		campaigns, err = service.repository.FindAll(input)
 	} else {
-		campaigns, err = service.repository.FindByUserID(userId)
+		campaigns, err = service.repository.FindByUserID(input.UserId)
 	}
 
 	return campaigns, err

@@ -25,8 +25,14 @@ func NewCampaignHandler(campaignService campaign.Service) *campaignHandler {
 
 func (h *campaignHandler) GetCampaigns(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.Query("user_id"))
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	name := c.Query("name")
 
-	campaigns, err := h.campaignService.GetCampaigns(userId)
+	campaigns, err := h.campaignService.GetCampaigns(campaign.GetCampaignsRequest{
+		UserId: userId,
+		Limit:  limit,
+		Name:   name,
+	})
 
 	if err != nil {
 		helper.ResponseBadRequest(c, "Get campaign failed", nil)
@@ -48,6 +54,10 @@ func (h *campaignHandler) GetCampaign(c *gin.Context) {
 	campaignDetail, err := h.campaignService.GetCampaign(input)
 
 	if err != nil {
+		if err.Error() == "data not found" {
+			helper.ResponseNotFound(c, "Campaign not found", nil)
+			return
+		}
 		helper.ResponseBadRequest(c, "Failed to get campaign", nil)
 		return
 	}

@@ -12,10 +12,21 @@ func NewRepository(db *gorm.DB) *repositoryImpl {
 	return &repositoryImpl{db: db}
 }
 
-func (repository *repositoryImpl) FindAll() ([]Campaign, error) {
+func (repository *repositoryImpl) FindAll(request GetCampaignsRequest) ([]Campaign, error) {
 	var campaigns []Campaign
 
-	err := repository.db.Preload("CampaignImages", "campaign_images.is_primary = 1").Find(&campaigns).Error
+	query := repository.db.Preload("CampaignImages", "campaign_images.is_primary = 1")
+
+	if request.Limit != 0 {
+		query.Limit(request.Limit)
+	}
+
+	if request.Name != "" {
+		query.Where("name ILIKE ?", "%"+request.Name+"%")
+	}
+	query.Order("id")
+
+	err := query.Find(&campaigns).Error
 
 	if err != nil {
 		return campaigns, err

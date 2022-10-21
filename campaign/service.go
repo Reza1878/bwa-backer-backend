@@ -1,7 +1,7 @@
 package campaign
 
 type Service interface {
-	GetCampaigns(userId int) ([]Campaign, error)
+	GetCampaigns(input GetCampaignsRequest) ([]Campaign, error)
 	GetCampaign(input GetCampaignDetailRequest) (Campaign, error)
 	CreateCampaign(request CreateCampaignRequest) (Campaign, error)
 	UpdateCampaign(requestId GetCampaignDetailRequest, requestData CreateCampaignRequest) (Campaign, error)

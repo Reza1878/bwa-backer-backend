@@ -37,11 +37,12 @@ func FormatCampaignTransactions(transactions []Transaction) []CampaignTransactio
 }
 
 type UserTransactionResponse struct {
-	ID        int                             `json:"id"`
-	Amount    int                             `json:"amount"`
-	Status    string                          `json:"status"`
-	CreatedAt time.Time                       `json:"created_at"`
-	Campaign  UserTransactionCampaignResponse `json:"campaign"`
+	ID         int                             `json:"id"`
+	Amount     int                             `json:"amount"`
+	Status     string                          `json:"status"`
+	CreatedAt  time.Time                       `json:"created_at"`
+	Campaign   UserTransactionCampaignResponse `json:"campaign"`
+	PaymentUrl string                          `json:"payment_url"`
 }
 
 type UserTransactionCampaignResponse struct {
@@ -56,6 +57,7 @@ func FormatUserTransaction(transaction Transaction) UserTransactionResponse {
 	response.Amount = transaction.Amount
 	response.Status = transaction.Status
 	response.CreatedAt = transaction.CreatedAt
+	response.PaymentUrl = transaction.PaymentUrl
 
 	campaignFormat := campaign.FormatCampaign(transaction.Campaign)
 

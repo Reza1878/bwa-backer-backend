@@ -6,6 +6,12 @@ type GetCampaignDetailRequest struct {
 	ID int `uri:"id" binding:"required"`
 }
 
+type GetCampaignsRequest struct {
+	UserId int
+	Limit  int
+	Name   string
+}
+
 type CreateCampaignRequest struct {
 	Name             string `json:"name" binding:"required"`
 	ShortDescription string `json:"short_description" binding:"required"`

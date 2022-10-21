@@ -74,6 +74,11 @@ func ResponseBadRequest(c *gin.Context, message string, data interface{}) {
 	c.JSON(http.StatusBadRequest, response)
 }
 
+func ResponseNotFound(c *gin.Context, message string, data interface{}) {
+	response := APIResponse(message, http.StatusNotFound, "error", data)
+	c.JSON(http.StatusNotFound, response)
+}
+
 func ResponseUnprocessableEntity(c *gin.Context, message string, data interface{}) {
 	response := APIResponse(message, http.StatusUnprocessableEntity, "error", data)
 	c.JSON(http.StatusUnprocessableEntity, response)
