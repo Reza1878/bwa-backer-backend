@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"bwa-backer/auth"
@@ -20,7 +19,6 @@ import (
 )
 
 func main() {
-	fmt.Println(helper.JoinProjectPath("images"))
 	dsn := helper.GetConnectionString()
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
@@ -67,6 +65,7 @@ func main() {
 	api.POST("/campaigns", middleware.AuthMiddleware(authService, userService), campaignHandler.CreateCampaign)
 	api.PUT("/campaigns/:id", middleware.AuthMiddleware(authService, userService), campaignHandler.UpdateCampaign)
 	api.POST("/campaigns-images", middleware.AuthMiddleware(authService, userService), middleware.LimitUploadFileSize(512*1000), campaignHandler.UploadImage)
+	api.DELETE("/campaigns-images/:campaign_image_id", middleware.AuthMiddleware(authService, userService), campaignHandler.DeleteImage)
 
 	api.GET("/campaigns/:id/transactions", middleware.AuthMiddleware(authService, userService), transactionHandler.GetTransactions)
 	api.GET("/transactions", middleware.AuthMiddleware(authService, userService), transactionHandler.GetUserTransaction)

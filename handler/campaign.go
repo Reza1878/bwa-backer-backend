@@ -167,3 +167,30 @@ func (h *campaignHandler) UploadImage(c *gin.Context) {
 	}
 	helper.ResponseOK(c, "Success to upload campaign image", gin.H{"is_uploaded": true})
 }
+
+func (h *campaignHandler) DeleteImage(c *gin.Context) {
+	var request campaign.DeleteCampaignImageRequest
+	err := c.ShouldBindUri(&request)
+
+	if err != nil {
+		errMsg := helper.FormatValidationError(err)
+		helper.ResponseBadRequest(c, "Failed to delete image", gin.H{"errors": errMsg})
+		return
+	}
+
+	user := c.MustGet("currentUser").(user.User)
+	request.User = user
+
+	campaignImage, err := h.campaignService.DeleteCampaignImage(request)
+
+	if err != nil {
+		helper.ResponseBadRequest(c, "Failed to delete campaign image", gin.H{"errors": err.Error()})
+		return
+	}
+
+	if campaignImage.FileName != "" {
+		os.Remove(helper.JoinProjectPath(campaignImage.FileName))
+	}
+
+	helper.ResponseOK(c, "Success delete campaign image", nil)
+}

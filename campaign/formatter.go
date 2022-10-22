@@ -68,6 +68,7 @@ type CampaignDetailUser struct {
 }
 
 type CampaignDetailImage struct {
+	Id        int    `json:"id"`
 	ImageUrl  string `json:"image_url"`
 	IsPrimary bool   `json:"is_primary"`
 }
@@ -95,6 +96,7 @@ func FormatCampaignDetail(campaign Campaign) CampaignDetailResponse {
 		images = append(images, CampaignDetailImage{
 			ImageUrl:  image.FileName,
 			IsPrimary: image.IsPrimary,
+			Id:        image.ID,
 		})
 	}
 

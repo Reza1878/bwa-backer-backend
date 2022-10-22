@@ -8,5 +8,9 @@ type Repository interface {
 	Save(campaign Campaign) (Campaign, error)
 	Update(campaign Campaign) (Campaign, error)
 	SaveImage(campaignImage CampaignImage) (CampaignImage, error)
+	FindImageById(imageId int) (CampaignImage, error)
+	FindImageByCampaign(campaignId int) ([]CampaignImage, error)
+	DeleteImageById(imageId int) error
+	UpdateImage(image CampaignImage) (CampaignImage, error)
 	MarkAllImagesAsNonPrimary(campaignID int) (bool, error)
 }

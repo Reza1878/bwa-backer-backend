@@ -26,3 +26,8 @@ type CreateCampaignImageRequest struct {
 	IsPrimary  *bool `form:"is_primary" binding:"required"`
 	User       user.User
 }
+
+type DeleteCampaignImageRequest struct {
+	CampaignImageId int `uri:"campaign_image_id" binding:"required"`
+	User            user.User
+}

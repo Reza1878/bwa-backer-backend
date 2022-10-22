@@ -1,6 +1,8 @@
 package campaign
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 )
 
@@ -103,4 +105,34 @@ func (r *repositoryImpl) MarkAllImagesAsNonPrimary(campaignID int) (bool, error)
 		return false, err
 	}
 	return true, err
+}
+
+func (r *repositoryImpl) FindImageById(imageId int) (CampaignImage, error) {
+	var image CampaignImage
+	err := r.db.Model(&CampaignImage{}).Where("id = ?", imageId).First(&image).Error
+
+	if image.ID == 0 {
+		return image, errors.New("not found")
+	}
+
+	return image, err
+}
+
+func (r *repositoryImpl) DeleteImageById(imageId int) error {
+	err := r.db.Where("id = ?", imageId).Preload("Campaign").Delete(&CampaignImage{}).Error
+
+	return err
+}
+
+func (r *repositoryImpl) FindImageByCampaign(campaignId int) ([]CampaignImage, error) {
+	var campaignImages []CampaignImage
+
+	err := r.db.Where("campaign_id = ?", campaignId).Find(&campaignImages).Error
+
+	return campaignImages, err
+}
+
+func (r *repositoryImpl) UpdateImage(image CampaignImage) (CampaignImage, error) {
+	err := r.db.Save(&image).Error
+	return image, err
 }

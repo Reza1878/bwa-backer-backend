@@ -88,7 +88,7 @@ func (s *serviceImpl) CreateCampaignImage(request CreateCampaignImageRequest, fi
 	campaign, err := s.repository.FindByID(request.CampaignID)
 
 	campaignImage := CampaignImage{}
-	campaignImage.CampaignId = request.CampaignID
+	campaignImage.CampaignID = request.CampaignID
 	campaignImage.FileName = fileLocation
 	campaignImage.IsPrimary = *request.IsPrimary
 
@@ -110,4 +110,43 @@ func (s *serviceImpl) CreateCampaignImage(request CreateCampaignImageRequest, fi
 	campaignImage, err = s.repository.SaveImage(campaignImage)
 
 	return campaignImage, err
+}
+
+func (s *serviceImpl) DeleteCampaignImage(request DeleteCampaignImageRequest) (CampaignImage, error) {
+	campaignImage, err := s.repository.FindImageById(request.CampaignImageId)
+	if err != nil {
+		return campaignImage, err
+	}
+
+	campaign, _ := s.repository.FindByID(campaignImage.CampaignID)
+
+	if campaign.UserId != request.User.Id {
+		return campaignImage, errors.New("you are not authorized to delete this resource")
+	}
+
+	campaignImages, err := s.repository.FindImageByCampaign(campaignImage.CampaignID)
+	if err != nil {
+		return campaignImage, err
+	}
+
+	if campaignImage.IsPrimary {
+		for _, v := range campaignImages {
+			if v.ID != campaignImage.ID {
+				v.IsPrimary = true
+				_, err = s.repository.UpdateImage(v)
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		return campaignImage, err
+	}
+
+	err = s.repository.DeleteImageById(request.CampaignImageId)
+	if err != nil {
+		return campaignImage, err
+	}
+
+	return campaignImage, nil
 }
