@@ -61,7 +61,9 @@ func GetConnectionString() string {
 	dbHost := GetDotEnvVariable("DB_HOST")
 	dbPort := GetDotEnvVariable("DB_PORT")
 
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", dbHost, dbUser, dbPass, dbName, dbPort)
+
+	// return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
 }
 
 func ResponseOK(c *gin.Context, message string, data interface{}) {

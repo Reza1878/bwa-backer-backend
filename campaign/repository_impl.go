@@ -17,7 +17,7 @@ func NewRepository(db *gorm.DB) *repositoryImpl {
 func (repository *repositoryImpl) FindAll(request GetCampaignsRequest) ([]Campaign, error) {
 	var campaigns []Campaign
 
-	query := repository.db.Preload("CampaignImages", "campaign_images.is_primary = 1")
+	query := repository.db.Preload("CampaignImages", "campaign_images.is_primary = true")
 
 	if request.Limit != 0 {
 		query.Limit(request.Limit)
@@ -40,7 +40,7 @@ func (repository *repositoryImpl) FindAll(request GetCampaignsRequest) ([]Campai
 func (repository *repositoryImpl) FindByUserID(userID int) ([]Campaign, error) {
 	var campaigns []Campaign
 
-	err := repository.db.Where("user_id = ?", userID).Preload("CampaignImages", "campaign_images.is_primary = 1").Find(&campaigns).Error
+	err := repository.db.Where("user_id = ?", userID).Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
 
 	return campaigns, err
 
